@@ -5,6 +5,7 @@ import { ChatRoom, ChatRoomDocument } from './schemas/chat-room.schema';
 import { Message, MessageDocument } from './schemas/message.schema';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { SendMessageDto } from './dto/send-message.dto';
+import { ProvidersService } from 'src/providers/providers.service';
 
 @Injectable()
 export class ChatService {
@@ -13,6 +14,7 @@ export class ChatService {
     private readonly chatRoomModel: Model<ChatRoomDocument>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
+    private readonly providersService: ProvidersService,
   ) {}
 
   async createRoom(dto: CreateRoomDto, creatorId: string) {
@@ -78,6 +80,39 @@ export class ChatService {
     });
 
     return room;
+  }
+
+  async getOrCreateRoomForTutorAndProviderUser(
+    tutorUserId: string,
+    providerId: string,
+  ) {
+    if (!Types.ObjectId.isValid(providerId)) {
+      throw new NotFoundException('Prestador inválido');
+    }
+
+    const provider = await this.providersService.findOne(providerId as any);
+    if (!provider) {
+      throw new NotFoundException('Prestador não encontrado');
+    }
+
+    const rawUserId =
+      (provider as any).userId ||
+      (provider as any).user ||
+      (provider as any).usuario ||
+      null;
+
+    if (!rawUserId) {
+      throw new NotFoundException(
+        'Usuário do prestador não está vinculado no cadastro.',
+      );
+    }
+
+    const providerUserId = rawUserId.toString();
+
+    return this.getOrCreateRoomForParticipants(
+      [tutorUserId, providerUserId],
+      `Atendimento com prestador`,
+    );
   }
 
   async sendMessage(senderId: string, dto: SendMessageDto) {

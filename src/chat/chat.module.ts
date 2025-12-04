@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ChatRoom, ChatRoomSchema } from './schemas/chat-room.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { AuthModule } from 'src/auth/auth.module';
+import { ProvidersModule } from 'src/providers/providers.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from 'src/auth/auth.module';
       { name: Message.name, schema: MessageSchema },
     ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => ProvidersModule),
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],

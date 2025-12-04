@@ -41,4 +41,15 @@ export class ChatController {
       roomId,
     });
   }
+
+  @Post('rooms/start-with-provider')
+  startRoomWithProvider(
+    @CurrentUser() user: any,
+    @Body() body: { providerId: string },
+  ) {
+    return this.chatService.getOrCreateRoomForTutorAndProviderUser(
+      user.userId,
+      body.providerId,
+    );
+  }
 }
